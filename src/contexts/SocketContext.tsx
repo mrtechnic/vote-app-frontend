@@ -26,38 +26,46 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  useEffect(() => {
-    const API_BASE_URL = import.meta.env.VITE_DECISION_VOTING_API_URL || 'http://localhost:3000/api';
-    const socketUrl = API_BASE_URL.replace('/api', '');
+useEffect(() => {
+  const API_BASE_URL =
+    import.meta.env.VITE_DECISION_VOTING_API_URL ||
+    (import.meta.env.DEV
+      ? "http://localhost:3000/api"
+      : "https://vote-app-backend-s9a0.onrender.com/api");
 
-     console.log("Socket connecting to:", socketUrl);
-    
-    const newSocket = io(socketUrl, {
-      transports: ['websocket', 'polling'],
-      autoConnect: true,
-    });
+  const socketUrl = API_BASE_URL.replace("/api", "");
 
-    newSocket.on('connect', () => {
-      console.log('Socket connected:', newSocket.id);
-      setIsConnected(true);
-    });
+  console.log("Socket connecting to:", socketUrl);
 
-    newSocket.on('disconnect', () => {
-      console.log('Socket disconnected');
-      setIsConnected(false);
-    });
+  const newSocket = io(socketUrl, {
+    transports: ["websocket", "polling"],
+    autoConnect: true,
+  });
 
-    newSocket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-      setIsConnected(false);
-    });
+  newSocket.on("connect", () => {
+    console.log("Socket connected:", newSocket.id);
+    setIsConnected(true);
+  });
 
-    setSocket(newSocket);
+  newSocket.on("disconnect", () => {
+    console.log("Socket disconnected");
+    setIsConnected(false);
+  });
 
-    return () => {
-      newSocket.close();
-    };
-  }, []);
+  newSocket.on("connect_error", (error) => {
+    console.error("Socket connection error:", error);
+    setIsConnected(false);
+  });
+
+  setSocket(newSocket);
+
+ return () => {
+  if (newSocket.connected) {
+    newSocket.disconnect();
+  }
+};
+}, []);
+
 
   const joinRoom = (roomId: string) => {
     if (socket && isConnected) {
