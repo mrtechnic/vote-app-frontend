@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_DECISION_VOTING_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_DECISION_VOTING_API_URL || 'https://vote-app-backend-s9a0.onrender.com/api';
+
+console.log("API Base URL:", API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
