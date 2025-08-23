@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useAuth } from '../../contexts/AuthContext';
+import { signup } from '../../utils/api';
 import { toast } from 'react-hot-toast';
 import { Mail, Lock, User } from 'lucide-react';
 
@@ -9,7 +9,6 @@ const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,7 +16,7 @@ const Register: React.FC = () => {
     setLoading(true);
 
     try {
-      await register(email, password, name);
+      const response = await signup(email, password, name);
       toast.success('Registration successful!');
       navigate('/dashboard');
     } catch (error: any) {

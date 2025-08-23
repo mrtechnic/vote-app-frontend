@@ -63,11 +63,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     try {
       const response = await signin(email, password);
-      const { token: newToken, user: newUser } = response;
+      const { user: newUser } = response;
 
-      setToken(newToken);
+      setToken('authenticated'); // Since backend handles token via cookies
       setUser(newUser);
-      localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(newUser));
     } catch (error: any) {
       throw new Error(error?.error || error?.message || 'Login failed');
@@ -76,11 +75,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (email: string, password: string, name: string) => {
     try {
-      const { token: newToken, user: newUser } = await signup(email, password, name);
+      const response = await signup(email, password, name);
+      const { user: newUser } = response;
 
-      setToken(newToken);
+      setToken('authenticated'); // Since backend handles token via cookies
       setUser(newUser);
-      localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(newUser));
     } catch (error: any) {
       throw new Error(error.error || error?.message || 'Registration failed');
@@ -90,7 +89,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('token');
     localStorage.removeItem('user');
   };
 
