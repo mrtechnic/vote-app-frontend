@@ -31,7 +31,7 @@ useEffect(() => {
     import.meta.env.VITE_DECISION_VOTING_API_URL ||
     (import.meta.env.DEV
       ? "http://localhost:3000/api"
-      : "https://vote-app-backend-s9a0.onrender.com/api");
+      : "https://vote-app-backend-s9a0.onrender.com/");
 
   const socketUrl = API_BASE_URL.replace("/api", "");
 
