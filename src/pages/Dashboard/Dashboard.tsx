@@ -101,7 +101,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleDeleteRoom = (roomId: string) => {
-    setRooms(rooms.filter(room => room.roomId !== roomId));
+    setRooms(rooms.filter(room => room.id !== roomId));
   };
 
   if (currentView === 'room') {

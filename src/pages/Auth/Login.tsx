@@ -14,16 +14,14 @@ const Login: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
-    console.log('Starting login process...');
-
-    try {      
+    try {
       console.log('Calling signin API...');
-     await signin(email, password);
-      
+      const user = await signin(email, password);
 
-
-        navigate('/dashboard');
-      
+      if (user) {
+        toast.success(`Welcome ${user.name}`);
+        navigate('/dashboard'); // redirect on success
+      }
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
     } finally {

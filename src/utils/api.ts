@@ -53,7 +53,8 @@ export const logout = async () => {
 export const signin = async (email: string, password: string) => {
   try {
       const response = await api.post('/auth/login', { email, password });
-  return response.data;
+  return response.data.user;
+  
   } catch (error: any) {
     throw error.response?.data || { message: 'Something went wrong'};
   }
