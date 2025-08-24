@@ -16,7 +16,7 @@ const Register: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await signup(email, password, name);
+     await signup(email, password, name);
       toast.success('Registration successful!');
       navigate('/dashboard');
     } catch (error: any) {
