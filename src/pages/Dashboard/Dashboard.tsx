@@ -78,6 +78,7 @@ const Dashboard: React.FC = () => {
     setLoading(true);
     try {
       const result = await getMyRooms();
+      console.log(result)
       setRooms(result.rooms);
     } catch (err) {
       console.error('Failed to load rooms:', err);

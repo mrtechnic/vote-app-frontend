@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_DECISION_VOTING_API_URL || 'https://vote-app-backend-s9a0.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_DECISION_VOTING_API_BASE_URL;
 
 console.log("API Base URL:", API_BASE_URL);
 
