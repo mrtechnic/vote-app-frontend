@@ -1,4 +1,5 @@
 import "./App.css";
+import { useEffect, useState } from "react";
 import { Route, Routes, Navigate } from "react-router";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
@@ -16,7 +17,16 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, redirectIfAuth = false }) => {
 
-  const token = Cookies.get("authToken") 
+  const [token, setToken] = useState<string | undefined>(Cookies.get("authToken"));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setToken(Cookies.get("authToken"));
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+
   
 
   // Auth route → redirect if logged in
