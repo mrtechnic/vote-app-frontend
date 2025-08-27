@@ -1,27 +1,30 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { signin } from '../../utils/api';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Mail, Lock } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      console.log('Calling signin API...');
-      const user = await signin(email, password);
-
-      if (user) {
-        toast.success(`Welcome ${user.name}`);
-        navigate('/dashboard'); // redirect on success
-      }
+      await login(email, password);
+      toast.success("Login Successful");
+      navigate('/dashboard', { replace: true });
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
     } finally {

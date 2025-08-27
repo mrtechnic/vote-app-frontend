@@ -1,48 +1,15 @@
 import "./App.css";
-import { useEffect, useState } from "react";
-import { Route, Routes, Navigate } from "react-router";
+import { Route, Routes, Navigate } from "react-router-dom";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import Dashboard from "./pages/Dashboard/Dashboard";
-import Cookies from "js-cookie";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import RoomView from "./components/RoomView";
 import { handleLogout } from "./utils/api";
-
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  redirectIfAuth?: boolean; 
-}
-
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, redirectIfAuth = false }) => {
-
-  const [token, setToken] = useState<string | undefined>(Cookies.get("authToken"));
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setToken(Cookies.get("authToken"));
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
+import ProtectedRoute from "./components/ProtectedRoute";
 
 
-  
-
-  // Auth route → redirect if logged in
-  if (redirectIfAuth && token) {
-    console.log('Redirecting authenticated user to dashboard');
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  // Protected route → redirect if NOT logged in
-  if (!redirectIfAuth && !token) {
-    console.log('Redirecting unauthenticated user to login');
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-};
 
 function App() {
 
@@ -60,23 +27,10 @@ function App() {
          }
        />
 
-       {/* Auth Routes */}
-       <Route
-         path="/login"
-         element={
-           <ProtectedRoute redirectIfAuth>
-             <Login />
-           </ProtectedRoute>
-         }
-       />
-       <Route path="/register" element={
-        <ProtectedRoute redirectIfAuth>
-        <Register />
-        </ProtectedRoute>} />
-       <Route path="/forgot-password" element={
-        <ProtectedRoute redirectIfAuth>
-          <ForgotPassword />
-          </ProtectedRoute>} />
+            {/* Auth Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
        {/* Dashboard - Protected */}
        <Route

@@ -34,40 +34,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [firstLaunch, setFirstLaunch] = useState(false);
 
-  useEffect(() => {
-    const hasLaunchedBefore = localStorage.getItem('hasLaunchedBefore');
+useEffect(() => {
+  const hasLaunchedBefore = localStorage.getItem("hasLaunchedBefore");
 
-    // Check if this is the first launch
-    if (!hasLaunchedBefore || hasLaunchedBefore === 'null' || hasLaunchedBefore === 'undefined') {
-      // Clear any existing authentication data on first launch
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setFirstLaunch(true);
-      setUser(null);
-      setToken(null);
-      localStorage.setItem('hasLaunchedBefore', 'true');
-      setLoading(false);
-      return;
-    }
-
-    // Always clear authentication data on app start (except first launch)
-    // This ensures users always see login page when they visit the app
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    setToken(null);
-
+  if (!hasLaunchedBefore) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setFirstLaunch(true);
     setLoading(false);
-  }, []);
+    localStorage.setItem("hasLaunchedBefore", "true");
+    return;
+  }
+
+  const storedUser = localStorage.getItem("user");
+  const storedToken = localStorage.getItem("token");
+
+  if (storedUser && storedToken) {
+    setUser(JSON.parse(storedUser));
+    setToken(storedToken);   
+  }
+
+  setLoading(false);
+}, []);
+
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await signin(email, password);
-      const { user: newUser } = response;
+      const { user: newUser, token: jwtToken } = await signin(email, password);
+      
+      if (!newUser || !jwtToken) {
+        throw new Error('Invalid login response');
+      }
 
-      setToken('authenticated'); // Since backend handles token via cookies
+      setToken(jwtToken); 
       setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
+      localStorage.setItem("token", jwtToken)
     } catch (error: any) {
       throw new Error(error?.error || error?.message || 'Login failed');
     }
@@ -75,12 +77,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (email: string, password: string, name: string) => {
     try {
-      const response = await signup(email, password, name);
-      const { user: newUser } = response;
+      const { user: newUser, token: jwtToken } = await signup(email, password, name);
 
-      setToken('authenticated'); // Since backend handles token via cookies
+      if (!newUser || !jwtToken) {
+        throw new Error("Invalid register response")
+      }
+
+      setToken(jwtToken); 
       setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
+      localStorage.setItem("token", jwtToken)
     } catch (error: any) {
       throw new Error(error.error || error?.message || 'Registration failed');
     }
@@ -90,6 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   const resetFirstLaunch = () => {
@@ -100,7 +107,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     token,
-    isAuthenticated: !!user,
+    isAuthenticated: !!token,
     login,
     register,
     logout,
