@@ -1,111 +1,108 @@
 import { useState, useEffect } from "react";
 import { Plus, Users } from "lucide-react";
-import RoomView from '../../components/RoomView'
+import RoomView from "../../components/RoomView";
 import RoomCard from "../../components/RoomCard";
 import CreateRoomForm from "../../components/CreateRoomForm";
 import { getMyRooms } from "../../utils/api";
 import type { Room } from "../../types";
 import { useSocket } from "../../contexts/SocketContext";
 
-
-
 const Dashboard: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [currentView, setCurrentView] = useState<'dashboard' | 'room'>('dashboard');
-  const [currentRoomId, setCurrentRoomId] = useState<string>('');
+  const [currentView, setCurrentView] = useState<"dashboard" | "room">(
+    "dashboard"
+  );
+  const [currentRoomId, setCurrentRoomId] = useState<string>("");
   const { socket, joinRoom, leaveRoom } = useSocket();
-  const user = {} as any;
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
+  const roomId = "admin-dashboard-stream";
 
-
-  const roomId = 'admin-dashboard-stream'
-
-    useEffect(() => {
-
-      joinRoom(roomId);
-      
-      return () => {
-        leaveRoom(roomId);
-      };
-    },
-   [ joinRoom, leaveRoom]);
-
+  //  join/leave admin dashboard room
   useEffect(() => {
-  if (!socket) return;
+    joinRoom(roomId);
+    return () => {
+      leaveRoom(roomId);
+    };
+  }, [joinRoom, leaveRoom]);
 
-  const handleVoteUpdate = (data: {
-    roomId: string;
-    tallies: number[];
-    totalVotes: number;
-    optionId: string;
-    voterCount: number;
-  }) => {
-    console.log(data)
-    // Filter/find the room that matches the incoming roomId
-    const updatedRoom = rooms.find((room) => room.id === data.roomId);
-
-    if (!updatedRoom) return; // If no room matches, do nothing
-
-    // Example: update that room’s tallies and votes
-    const newRooms = rooms.map((room) =>
-      room.id === data.roomId
-        ? {
-            ...room,
-            tallies: data.tallies,
-            totalVotes: data.totalVotes,
-            voterCount: data.voterCount,
-          }
-        : room
-    );
-
-    setRooms(newRooms);
-  };
-
-  socket.on("vote-updated", handleVoteUpdate);
-
-  return () => {
-    socket.off("vote-updated", handleVoteUpdate);
-  };
-}, [socket, rooms, setRooms]);
-
-
-
-  const loadRooms = async () => {
-   
-    
-    setLoading(true);
-    try {
-      const result = await getMyRooms();
-      console.log(result)
-      setRooms(result.rooms);
-    } catch (err) {
-      console.error('Failed to load rooms:', err);
-    } finally {
+  //  Fetch rooms only if token exists
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
       setLoading(false);
+      return;
     }
-  };
 
-  useEffect(() => {
+    const loadRooms = async () => {
+      setLoading(true);
+      try {
+        const result = await getMyRooms();
+        console.log("Rooms fetched:", result);
+        setRooms(result.rooms || []);
+      } catch (err) {
+        console.error("Failed to load rooms:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadRooms();
   }, []);
 
+  // Socket listener (no `rooms` dependency to avoid loop)
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleVoteUpdate = (data: {
+      roomId: string;
+      tallies: number[];
+      totalVotes: number;
+      optionId: string;
+      voterCount: number;
+    }) => {
+      console.log("Vote update:", data);
+
+      setRooms((prevRooms) =>
+        prevRooms.map((room) =>
+          room.roomId === data.roomId
+            ? {
+                ...room,
+                tallies: data.tallies,
+                totalVotes: data.totalVotes,
+                options: room.options.map((option, index) => ({
+                  ...option,
+                  votes: data.tallies[index] || 0,
+                })),
+                voterCount: data.voterCount,
+              }
+            : room
+        )
+      );
+    };
+
+    socket.on("vote-updated", handleVoteUpdate);
+    return () => {
+      socket.off("vote-updated", handleVoteUpdate);
+    };
+  }, [socket]);
+
   const handleViewRoom = (roomId: string) => {
     setCurrentRoomId(roomId);
-    setCurrentView('room');
+    setCurrentView("room");
   };
 
   const handleBackToDashboard = () => {
-    setCurrentView('dashboard');
-    loadRooms(); // Refresh rooms when returning
+    setCurrentView("dashboard");
   };
 
   const handleDeleteRoom = (roomId: string) => {
-    setRooms(rooms.filter(room => room.id !== roomId));
+    setRooms((prevRooms) => prevRooms.filter((room) => room.roomId !== roomId));
   };
 
-  if (currentView === 'room') {
+  if (currentView === "room") {
     return <RoomView roomId={currentRoomId} onBack={handleBackToDashboard} />;
   }
 
@@ -132,8 +129,12 @@ const Dashboard: React.FC = () => {
       ) : rooms.length === 0 ? (
         <div className="text-center py-12">
           <Users size={48} className="mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No rooms yet</h3>
-          <p className="text-gray-600 mb-4">Create your first Situation room to get started!</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No rooms yet
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Create your first Situation room to get started!
+          </p>
           <button
             onClick={() => setShowCreateForm(true)}
             className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-md hover:from-blue-700 hover:to-purple-700 transition-all"
@@ -144,9 +145,9 @@ const Dashboard: React.FC = () => {
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {rooms.map((room) => (
-            <RoomCard 
-              key={room.id} 
-              room={room} 
+            <RoomCard
+              key={room.id}
+              room={room}
               onView={handleViewRoom}
               onDelete={handleDeleteRoom}
             />
@@ -158,8 +159,17 @@ const Dashboard: React.FC = () => {
         <CreateRoomForm
           onClose={() => setShowCreateForm(false)}
           onSuccess={() => {
-            loadRooms();
             setShowCreateForm(false);
+            // reload after creating
+            const reload = async () => {
+              try {
+                const result = await getMyRooms();
+                setRooms(result.rooms || []);
+              } catch (err) {
+                console.error("Reload rooms failed:", err);
+              }
+            };
+            reload();
           }}
         />
       )}

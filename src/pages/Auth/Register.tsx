@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router-dom';
 import { signup } from '../../utils/api';
 import { toast } from 'react-hot-toast';
 import { Mail, Lock, User } from 'lucide-react';
@@ -18,7 +18,7 @@ const Register: React.FC = () => {
     try {
      await signup(email, password, name);
       toast.success('Registration successful!');
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (error: any) {
       toast.error(error.message);
     } finally {

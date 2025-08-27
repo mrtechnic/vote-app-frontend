@@ -14,36 +14,49 @@ const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
+    const token = localStorage.getItem("token"); // read token from storage
+    if (token){
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
     return Promise.reject(error);
   }
 );
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const {
-      response: { status },
-    } = error;
-
-    if (status === 401) return await handleLogout();
-
+    const status = error.response?.status;
+    // Do not auto-logout here to avoid redirect loops right after login
+    // Let views handle 401s gracefully
+    if (status === 401) {
+      // Optionally, we could emit an event or set a flag
+    }
     return Promise.reject(error);
   }
 );
 
+
 export async function handleLogout() {
-  return await logout().then(() => {
-    window.location.assign(
-      '/login'
-    );
-  });
+  try {
+    await api.get("/auth/logOut"); // optional server cleanup
+  } catch (error) {
+    console.warn("Logout API failed, clearing token anyway:", error);
+  } finally {
+    localStorage.removeItem("token"); // clear token
+    localStorage.removeItem("user");  // clear user (if ever stored)
+    window.location.href = "/login";  // force reload + redirect
+  }
 }
+
+
 
 export const logout = async () => {
   try {
     const response = await api.get('/auth/logOut');
+    localStorage.removeItem("token");
     return response.data;
   } catch (error: any) {
     throw error.response?.data || { message: 'Something went wrong' };
@@ -53,7 +66,11 @@ export const logout = async () => {
 export const signin = async (email: string, password: string) => {
   try {
       const response = await api.post('/auth/login', { email, password });
-  return response.data.user;
+
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token)
+      }
+  return response.data;
   
   } catch (error: any) {
     throw error.response?.data || { message: 'Something went wrong'};
@@ -64,6 +81,10 @@ export const signin = async (email: string, password: string) => {
 export const signup = async (email: string, password: string, name: string) => {
   try {
     const response = await api.post('/auth/register', { email, password, name });
+
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token)
+    }
     return response.data;
   } catch (error: any) {
     throw error.response?.data || { message: 'Something went wrong' };
