@@ -109,16 +109,22 @@ const Dashboard: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Situation Rooms</h1>
-          <p className="text-gray-600">Welcome back, {user?.name}</p>
+        {/* Left side (Heading + Subtext stacked) */}
+        <div className="flex flex-col">
+          <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+            My Situation Rooms
+          </h1>
+          <p className="text-gray-600 text-sm mt-1">
+            Welcome back, {user?.name}
+          </p>
         </div>
+
+        {/* Right side (Button) */}
         <button
           onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-md hover:from-blue-700 hover:to-purple-700 transition-all"
+          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-md hover:from-blue-700 hover:to-purple-700 transition-all whitespace-nowrap"
         >
-          <Plus size={20} />
-          Create Room
+          + Create Room
         </button>
       </div>
 
