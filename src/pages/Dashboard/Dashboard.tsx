@@ -114,7 +114,7 @@ const Dashboard: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">
             My Situation Rooms
           </h1>
-          <p className="text-gray-600">Welcome back, {user?.name}</p>
+          <p className="text-gray-600">Welcome Back, {user?.name}</p>
         </div>
         <button
           onClick={() => setShowCreateForm(true)}
