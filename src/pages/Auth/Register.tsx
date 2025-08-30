@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signup } from '../../utils/api';
 import { toast } from 'react-hot-toast';
 import { Mail, Lock, User } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -10,17 +10,25 @@ const Register: React.FC = () => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const {register} = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-     await signup(email, password, name);
-      toast.success('Registration successful!');
-      navigate('/dashboard', { replace: true });
+     await register(email, password, name);
+
+    
+       toast.success(`Welcome ${name}!`);
+
+       
+       
+        navigate('/dashboard', { replace: true });
+   
+      
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message) || "Registration failed";
     } finally {
       setLoading(false);
     }
